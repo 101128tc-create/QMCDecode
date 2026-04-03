@@ -1,0 +1,35 @@
+name: Build DMG
+
+on:
+  workflow_dispatch:   # 手动触发
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build app
+        run: |
+          xcodebuild -scheme QMCDecode \
+                     -configuration Release \
+                     -derivedDataPath ./build \
+                     build
+
+      - name: Create DMG
+        run: |
+          brew install create-dmg
+          create-dmg \
+            --volname "QMCDecode" \
+            --window-size 600 400 \
+            --icon-size 100 \
+            --icon "QMCDecode.app" 150 185 \
+            --app-drop-link 450 185 \
+            "QMCDecode.dmg" \
+            "./build/Build/Products/Release/"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: QMCDecode-DMG
+          path: QMCDecode.dmg
